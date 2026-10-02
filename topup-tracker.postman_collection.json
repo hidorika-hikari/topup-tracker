@@ -1,0 +1,80 @@
+{
+  "info": {
+    "name": "Topup Tracker API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "host", "value": "http://localhost:3000" },
+    { "key": "orderNo", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{host}}/health" }
+    },
+    {
+      "name": "1) Create order",
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "const b = pm.response.json();",
+          "if (b.orderNo) pm.collectionVariables.set('orderNo', b.orderNo);"
+        ] }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "demo-001" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"gameId\": \"ROV\",\n  \"playerId\": \"player01\",\n  \"packageCode\": \"DIAMOND_100\",\n  \"amount\": 99\n}" },
+        "url": "{{host}}/orders"
+      }
+    },
+    {
+      "name": "2) Pay (simulate)",
+      "request": { "method": "POST", "url": "{{host}}/orders/{{orderNo}}/pay" }
+    },
+    {
+      "name": "3) Get order",
+      "request": { "method": "GET", "url": "{{host}}/orders/{{orderNo}}" }
+    },
+    {
+      "name": "4) Timeline",
+      "request": { "method": "GET", "url": "{{host}}/orders/{{orderNo}}/timeline" }
+    },
+    {
+      "name": "5) Report issue",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"category\": \"NOT_RECEIVED\",\n  \"message\": \"ยังไม่ได้รับไอเทม\"\n}" },
+        "url": "{{host}}/orders/{{orderNo}}/report-issue"
+      }
+    },
+    {
+      "name": "6a) List current",
+      "request": { "method": "GET", "url": "{{host}}/orders?tab=current&page=1" }
+    },
+    {
+      "name": "6b) List history",
+      "request": { "method": "GET", "url": "{{host}}/orders?tab=history&page=1&limit=10" }
+    },
+    {
+      "name": "7) Bots",
+      "request": { "method": "GET", "url": "{{host}}/bots" }
+    },
+    {
+      "name": "Error: 400 bad orderNo",
+      "request": { "method": "GET", "url": "{{host}}/orders/ABC" }
+    },
+    {
+      "name": "Error: 404 not found",
+      "request": { "method": "GET", "url": "{{host}}/orders/ORD-1111111111111-111" }
+    },
+    {
+      "name": "Error: 400 bad tab",
+      "request": { "method": "GET", "url": "{{host}}/orders?tab=foo" }
+    }
+  ]
+}
